@@ -1,0 +1,47 @@
+name: Deploy WASM
+
+on:
+  push:
+    branches: [main]
+
+env:
+  TARGET_REPO: ${{ vars.TARGET_REPO }}
+  TARGET_DIR: ${{ vars.TARGET_DIR }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build formatter.wasm
+        run: GOOS=js GOARCH=wasm go build -o formatter.wasm ./cmd/wasm/
+
+      - name: Copy wasm_exec.js
+        run: cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" .
+
+      - name: Checkout target repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.TARGET_REPO }}
+          token: ${{ secrets.DEPLOY_TOKEN }}
+          path: target-repo
+
+      - name: Place files
+        run: |
+          cp formatter.wasm target-repo/${{ env.TARGET_DIR }}/
+          cp wasm_exec.js   target-repo/${{ env.TARGET_DIR }}/
+
+      - name: Commit and push
+        working-directory: target-repo
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add ${{ env.TARGET_DIR }}/formatter.wasm ${{ env.TARGET_DIR }}/wasm_exec.js
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "chore: update formatter.wasm and wasm_exec.js"
+          git push
