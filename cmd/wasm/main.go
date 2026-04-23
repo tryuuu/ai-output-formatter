@@ -16,20 +16,6 @@ func main() {
 		return formatter.Format(args[0].String())
 	}))
 
-	js.Global().Set("aiRemoveBold", js.FuncOf(func(_ js.Value, args []js.Value) any {
-		if len(args) == 0 {
-			return ""
-		}
-		return formatter.RemoveBold(args[0].String())
-	}))
-
-	js.Global().Set("aiConvertStyle", js.FuncOf(func(_ js.Value, args []js.Value) any {
-		if len(args) == 0 {
-			return ""
-		}
-		return formatter.ConvertStyle(args[0].String())
-	}))
-
 	// プロセスを生かし続けて関数を有効に保つ
 	select {}
 }
