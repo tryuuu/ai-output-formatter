@@ -40,6 +40,36 @@ wasmの読み込み後、`window.aiFormat(text)` が利用できる:
 </script>
 ```
 
+## GitHub Actions による自動デプロイ
+
+mainブランチへのpush時に `formatter.wasm` と `wasm_exec.js` を別リポジトリへ自動配置するワークフローが含まれている。
+
+### 設定
+
+リポジトリの Settings → Secrets and variables → Actions で以下を登録する。
+
+**Variables**
+
+| Name | 例 |
+|------|----|
+| `TARGET_REPO` | `your-org/your-app` |
+| `TARGET_DIR` | `frontend/public` |
+
+**Secrets**
+
+| Name | 内容 |
+|------|------|
+| `DEPLOY_TOKEN` | 対象リポジトリへのpush権限を持つPersonal Access Token（`repo` スコープ） |
+
+### 動作
+
+```
+main push
+  → formatter.wasm をビルド
+  → wasm_exec.js を Go 標準ライブラリから取得
+  → TARGET_REPO の TARGET_DIR に配置してコミット・プッシュ
+```
+
 ## License
 
 MIT
